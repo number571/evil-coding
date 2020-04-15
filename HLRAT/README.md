@@ -1,1 +1,1 @@
-RAT throw Hidden Lake network.
+RAT throw Hidden Lake (version: 1.0.4s) network.
