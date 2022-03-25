@@ -1,42 +1,56 @@
 #include <stdio.h>
-#include <string.h>
 
-#include "crypto.h"
+#ifdef __unix__
+	#include <sys/mman.h>
+#elif _WIN32
+	#include <windows.h>
+#else
+	#error "platform not supported"
+#endif
+
+static void *vmalloc(int size);
+static int vfree(void *mem, int size);
+
+typedef int (*payload_t)(
+	FILE* (*fopen) (const char *, const char *),
+	int (*fprintf) (FILE*, const char *, ...),
+	int (*fclose) (FILE *),
+	int x
+);
 
 int main(void) {
-	int (*_Begin)
-		(FILE* (*) (const char *, const char *),
-		size_t (*) (const void *, size_t, size_t, FILE *),
-		int (*) (FILE *),
-		char *data,
-		int size
-	);
-	char buff[BUFSIZ];
-
-	FILE *payload = fopen("payload.bin", "rb");
+	FILE *payload;
+	void *buff; 
+	
+	payload = fopen("payload.bin", "rb");
 	if (payload == NULL) {
 		return 1;
 	}
-	int nbytes = fread(buff, sizeof(char), BUFSIZ, payload);
+
+	buff = vmalloc(BUFSIZ);
+
+	fread(buff, sizeof(char), BUFSIZ, payload);
 	fclose(payload);
 
-	char key[] = "it's a key!";
-	char iv[] = "init vector!";
-
-	// DECRYPT
-	crypto_encrypt(buff, key, strlen(key), iv, strlen(iv), buff, nbytes);
-
-	char msg[] = "some file data";
-	int size = strlen(msg);
-
-	_Begin = (int (*)
-		(FILE* (*) (const char *, const char *),
-		size_t (*) (const void *, size_t, size_t, FILE *),
-		int (*) (FILE *),
-		char *data,
-		int size)
-	) &buff[0];
-	_Begin(fopen, fwrite, fclose, msg, size);
+	printf("%d\n", ((payload_t) buff)(fopen, fprintf, fclose, 20));
+	vfree(buff, BUFSIZ);
 
 	return 0;
+}
+
+static void *vmalloc(int size) {
+	#ifdef __unix__ 
+		return mmap(NULL, size, PROT_EXEC | PROT_READ | PROT_WRITE, 
+			MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+	#elif _WIN32
+		return VirtualAlloc(0, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+	#endif
+}
+
+static int vfree(void *mem, int size) {
+	#ifdef __unix__ 
+		return munmap(mem, size);
+	#elif _WIN32
+		return VirtualFree(mem, size, MEM_RELEASE);
+	#endif
 }

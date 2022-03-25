@@ -1,18 +1,23 @@
-int _payload(
+#ifndef PAYLOAD_H
+#define PAYLOAD_H
+
+extern int _payload(
 	FILE* (*_fopen) (const char *, const char *),
-	size_t (*_fwrite) (const void *, size_t, size_t, FILE *),
+	int (*_fprintf) (FILE *, const char *, ...),
 	int (*_fclose) (FILE *),
-	char *data,
-	int size
+	int x
 ) {
-	char fnm[] = "filename.txt";
-	char mde[] = "wb";
-	FILE *file = _fopen(fnm, mde);
+	char filename[] = "result.txt";
+	char mode[] = "w";
+	char format[] = "%d";
+	FILE *file = _fopen(filename, mode);
 	if (file == NULL) {
 		return 1;
 	}
-	_fwrite(data, sizeof(char), size, file);
+	_fprintf(file, format, x * 30);
 	_fclose(file);
 	return 0;
 }
-void _end(void){}
+extern void _end(void){}
+
+#endif /* PAYLOAD_H */
