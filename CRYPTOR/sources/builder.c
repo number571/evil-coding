@@ -1,21 +1,29 @@
+#include "payload.h"
+#include "encrypt.h"
+
 #include <stdio.h>
 #include <string.h>
 
-#include "payload.h"
-
 int main(void) {
-	FILE *payload;
-	int nbytes;
+    FILE *payload;
+    int nbytes;
 
-	payload = fopen("payload.bin", "wb");
-	if (payload == NULL) {
-		return 1;
-	}
+    payload = fopen("payload.bin", "wb");
+    if (payload == NULL) {
+        return 1;
+    }
 
-	nbytes = (unsigned long)_end - (unsigned long)_payload;
+    nbytes = (unsigned long)_end - (unsigned long)_payload;
+    char buff[nbytes];
 
-	fwrite((char *) _payload, sizeof(char), nbytes, payload);
-	fclose(payload);
+    char key[] = "it's a key!";
+    int lenkey = strlen(key);
 
-	return 0;
+    // encrypt
+    encrypt_xor(buff, (char*)_payload, nbytes, key, lenkey);
+
+    fwrite(buff, sizeof(char), nbytes, payload);
+    fclose(payload);
+
+    return 0;
 }
