@@ -1,6 +1,8 @@
 #ifndef PAYLOAD_H
 #define PAYLOAD_H
 
+#include <stdio.h>
+
 extern int _payload(
 	FILE* (*_fopen) (const char *, const char *),
 	int (*_fprintf) (FILE *, const char *, ...),
